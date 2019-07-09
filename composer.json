@@ -1,5 +1,5 @@
 {
-    "name": "kbergha/karbon",
+    "name": "kbergha/craft-karbon",
     "description": "Brings the power of date / datetime handling from Carbon to Twig, hopefully helping to answer the age old question of: what (date)-time is it?",
     "type": "craft-plugin",
     "version": "0.0.1",
@@ -8,7 +8,8 @@
         "cms",
         "craftcms",
         "craft-plugin",
-        "karbon"
+        "karbon",
+        "carbon"
     ],
     "support": {
         "docs": "https://github.com/kbergha/craft-karbon/blob/master/README.md",
@@ -22,7 +23,8 @@
         }
     ],
     "require": {
-        "craftcms/cms": "^3.1.0"
+        "craftcms/cms": "^3.1.0",
+        "nesbot/carbon": "^2.20"
     },
     "autoload": {
         "psr-4": {
@@ -30,7 +32,7 @@
         }
     },
     "extra": {
-        "name": "karbon",
+        "name": "Karbon",
         "handle": "karbon",
         "hasCpSettings": false,
         "hasCpSection": false,
