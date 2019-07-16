@@ -11,6 +11,7 @@
 namespace kbergha\karbon;
 
 use kbergha\karbon\twigextensions\KarbonTwigExtension;
+use kbergha\karbon\models\Settings;
 
 use Craft;
 use craft\base\Plugin;
@@ -120,5 +121,14 @@ class Karbon extends Plugin
 
     // Protected Methods
     // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
+    protected function createSettingsModel()
+    {
+        return new Settings();
+    }
+
 
 }

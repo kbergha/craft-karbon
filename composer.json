@@ -34,6 +34,7 @@
     "extra": {
         "name": "Karbon",
         "handle": "karbon",
+        "hasSettings": true,
         "hasCpSettings": false,
         "hasCpSection": false,
         "changelogUrl": "https://raw.githubusercontent.com/kbergha/craft-karbon/master/CHANGELOG.md",
