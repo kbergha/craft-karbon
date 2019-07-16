@@ -8,9 +8,7 @@
  * @copyright Copyright (c) 2019 Knut Erik Berg-Hansen
  */
 
-namespace \karbon\models;
-
-use \karbon\Karbon;
+namespace kbergha\karbon\models;
 
 use Craft;
 use craft\base\Model;
@@ -28,7 +26,7 @@ class Settings extends Model
     /**
      * @var string
      */
-    public $someAttribute = 'Some Default';
+    public $dateConfiguration = [];
 
     // Public Methods
     // =========================================================================
@@ -39,8 +37,8 @@ class Settings extends Model
     public function rules()
     {
         return [
-            ['someAttribute', 'string'],
-            ['someAttribute', 'default', 'value' => 'Some Default'],
+            ['dateConfiguration', 'array'],
+            ['dateConfiguration', 'default', 'value' => []],
         ];
     }
 }

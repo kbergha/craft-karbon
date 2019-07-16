@@ -35,15 +35,15 @@ use Craft;
 class KarbonTwigExtension extends AbstractExtension
 {
     protected $locale;
-    protected $timeZone;
+    protected $dateConfiguration = [];
 
     // Public Methods
     // =========================================================================
 
     public function __construct()
     {
-        $this->timeZone = Craft::$app->getTimeZone(); // @todo: consider using config, this is global for all Craft sites.
-        $this->locale = self::fromIETFtoPosix(Craft::$app->sites->currentSite->language);
+        $this->locale = Craft::$app->sites->currentSite->language;
+        $this->resolveLocaleConfig($this->locale);
     }
 
     /**
@@ -78,7 +78,22 @@ class KarbonTwigExtension extends AbstractExtension
         if ($date === null) {
             $date = Carbon::now();
         }
-        return Carbon::instance($date)->locale($this->locale)->toImmutable();
+
+        $locale = self::fromIETFtoPosix($this->locale);
+        return Carbon::instance($date)->locale($locale)->toImmutable();
+    }
+
+    /**
+     * @param null $locale
+     */
+    protected function resolveLocaleConfig($locale = null)
+    {
+        $config = Karbon::getInstance()->getSettings()->dateConfiguration;
+        $this->dateConfiguration = $config['default'];
+
+        if (! is_null($locale) && array_key_exists($locale, $config)) {
+            $this->dateConfiguration = $config[$locale];
+        }
     }
 
 
@@ -114,6 +129,7 @@ class KarbonTwigExtension extends AbstractExtension
     {
         return [
             new TwigFunction('karbonGetDateString', [$this, 'getDateString']),
+            new TwigFunction('karbonGetTimeString', [$this, 'getTimeString']),
             new TwigFunction('karbonIsoFormat',     [$this, 'isoFormat']),
         ];
     }
@@ -127,41 +143,39 @@ class KarbonTwigExtension extends AbstractExtension
      */
     public function getDateString(DateTime $dateFrom, DateTime $dateTo = null)
     {
-        $dateString = 'L'; // @todo: get fallback from config?
+        $config = $this->dateConfiguration['date'];
         $carbonFrom = $this->getImmutableCarbon($dateFrom);
+        $dateString = $carbonFrom->isoFormat($config['fallback']);
 
         if ($dateTo === null) {
             // One day, just use dateFrom.
-            $format = 'dddd LL'; // @todo: get from plugin config.
-            $dateString = $carbonFrom->isoFormat($format);
+            $dateString = $carbonFrom->isoFormat($config['oneDay']);
 
         } else {
             // Both from and to are available
-
             $carbonTo = $this->getImmutableCarbon($dateTo);
 
             if ($carbonFrom->isSameDay($carbonTo)) {
                 // The same day
-                $format = 'dddd LL'; // @todo: get from config.
-                $dateString = $carbonFrom->isoFormat($format);
+                $dateString = $carbonFrom->isoFormat($config['oneDay']);
 
             } elseif ($carbonFrom->isSameMonth($carbonTo)) {
                 // Not the same day, but the same month
-                $format1 = 'D.'; // @todo: get from config.
-                $format2 = 'LL'; // @todo: get from config.
-                $dateString = $carbonFrom->isoFormat($format1).'-'.$carbonTo->isoFormat($format2); // @todo: date separator from config
+                $dateString = $carbonFrom->isoFormat($config['multiDaySameMonth']['from']);
+                $dateString .= $config['multiDaySeparator'];
+                $dateString .= $carbonTo->isoFormat($config['multiDaySameMonth']['to']);
 
             } elseif (($carbonFrom->isSameMonth($carbonTo) === false) && $carbonFrom->isSameYear($carbonTo)) {
                 // Not the same month, but the same year
-                $format1 = 'D. MMMM'; // @todo: get from config.
-                $format2 = 'LL'; // @todo: get from config.
-                $dateString = $carbonFrom->isoFormat($format1).'-'.$carbonTo->isoFormat($format2);
+                $dateString = $carbonFrom->isoFormat($config['multiDayDifferentMonth']['from']);
+                $dateString .= $config['multiDaySeparator'];
+                $dateString .= $carbonTo->isoFormat($config['multiDayDifferentMonth']['to']);
 
             } elseif (($carbonFrom->isSameYear($carbonTo) === false)) {
                 // Not the same year
-                $format1 = 'LL'; // @todo: get from config.
-                $format2 = 'LL'; // @todo: get from config.
-                $dateString = $carbonFrom->isoFormat($format1).'-'.$carbonTo->isoFormat($format2);
+                $dateString = $carbonFrom->isoFormat($config['multiDayDifferentYear']['from']);
+                $dateString .= $config['multiDaySeparator'];
+                $dateString .= $carbonTo->isoFormat($config['multiDayDifferentYear']['to']);
 
             }
 
@@ -184,7 +198,27 @@ class KarbonTwigExtension extends AbstractExtension
      */
     public function getTimeString(DateTime $timeFrom, DateTime $timeTo = null)
     {
-        return '13:37'; // @todo get from config
+
+        $config = $this->dateConfiguration['time'];
+        $carbonFrom = $this->getImmutableCarbon($timeFrom);
+
+        if ($timeTo === null) {
+            // One day, just use timeFrom.
+            $timeString = $config['prefix'];
+            $timeString .= $carbonFrom->isoFormat($config['format']);
+            $timeString .= $config['postfix'];
+
+        } else {
+            $carbonTo = $this->getImmutableCarbon($timeTo);
+
+            $timeString = $config['prefix'];
+            $timeString .= $carbonFrom->isoFormat($config['format']);
+            $timeString .= $config['spanSeparator'];
+            $timeString .= $carbonTo->isoFormat($config['format']);
+            $timeString .= $config['postfix'];
+        }
+
+        return $timeString;
     }
 
 

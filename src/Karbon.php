@@ -125,6 +125,7 @@ class Karbon extends Plugin
     /**
      * @inheritdoc
      */
+
     protected function createSettingsModel()
     {
         return new Settings();
